@@ -1,0 +1,87 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<h1>Ollama Chat</h1>
+<h6>A Shell for Ollama model lamma3.2</h6>
+<div id="chat"></div>
+<textarea id="input" rows="3" style="width:100%"></textarea>
+<button id="send">Send</button>
+
+<script>
+    document.getElementById('send').addEventListener('click', () => {
+      const text = document.getElementById('input').value.trim();
+      if (!text) return;
+
+      append('user', text);
+      document.getElementById('input').value = '';
+
+      const evt = new EventSourcePolyfill('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama3.2',
+          messages: [{ role: 'user', content: text }],
+          stream: true
+        })
+      });
+
+      let assistantText = '';
+      evt.onmessage = e => {
+        const payload = JSON.parse(e.data);
+        assistantText += payload.choices[0].delta.content || '';
+        updateAssistant(assistantText);
+      };
+      evt.onerror = () => evt.close();
+    });
+
+    function append(role, msg) {
+      const el = document.createElement('pre');
+      el.className = `message ${role}`;
+      el.textContent = (role === 'user' ? 'You: ' : 'AI: ') + msg;
+      document.getElementById('chat').append(el);
+      document.getElementById('chat').scrollTop = 1e9;
+    }
+
+    function updateAssistant(text) {
+      const chat = document.getElementById('chat');
+      const last = chat.lastElementChild;
+      if (!last || !last.classList.contains('assistant')) {
+        append('assistant', text);
+      } else {
+        last.textContent = 'AI: ' + text;
+      }
+    }
+
+    // SSE polyfill via fetch streaming
+    class EventSourcePolyfill {
+      constructor(url, opts) {
+        this.url = url; this.opts = opts;
+        this._emitter = new EventTarget();
+        this._init();
+      }
+      async _init() {
+        const res = await fetch(this.url, this.opts);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          chunk.split('\n\n').forEach(eventBlock => {
+            if (eventBlock.startsWith('data: ')) {
+              const data = eventBlock.slice(6);
+              this._emitter.dispatchEvent(
+                new MessageEvent('message', { data })
+              );
+            }
+          });
+        }
+      }
+      addEventListener(name, fn) { this._emitter.addEventListener(name, fn); }
+      set onmessage(fn) { this.addEventListener('message', fn); }
+      set onerror(fn)   { this.addEventListener('error', fn); }
+      close() {}
+    }
+</script>
