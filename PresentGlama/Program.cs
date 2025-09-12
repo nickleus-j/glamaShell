@@ -11,7 +11,7 @@ builder.Services.AddControllersWithViews();
 // Register HttpClient for Ollama on localhost:11434
 builder.Services.AddHttpClient("ollama", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:11434");
+    client.BaseAddress = new Uri(builder?.Configuration["OllamaAddress"]?? "http://localhost:11434");
     client.DefaultRequestHeaders.Accept.Add(
         new MediaTypeWithQualityHeaderValue("application/json"));
 });

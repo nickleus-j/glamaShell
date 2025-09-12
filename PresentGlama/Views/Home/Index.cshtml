@@ -2,7 +2,6 @@
     ViewData["Title"] = "Home Page";
 }
 
-
 <h1>Ollama Chat</h1>
 <h6>A Shell for Ollama model lamma3.2</h6>
 <div id="chat"></div>
@@ -39,7 +38,7 @@
     function append(role, msg) {
       const el = document.createElement('pre');
       el.className = `message ${role}`;
-      el.textContent = (role === 'user' ? 'You: ' : 'AI: ') + msg;
+      el.textContent = (role === 'user' ? 'You: ' : 'LLM: ') + msg;
       document.getElementById('chat').append(el);
       document.getElementById('chat').scrollTop = 1e9;
     }
@@ -50,7 +49,7 @@
       if (!last || !last.classList.contains('assistant')) {
         append('assistant', text);
       } else {
-        last.textContent = 'AI: ' + text;
+        last.textContent = 'LLM: ' + text;
       }
     }
 
