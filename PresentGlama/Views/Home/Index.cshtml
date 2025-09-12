@@ -1,11 +1,11 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    
 }
 
-<h1>Ollama Chat</h1>
-<h6>A Shell for Ollama model lamma3.2</h6>
+<h1>@ViewBag.Title</h1>
+<h6>A Shell for Ollama model lamma 3.2</h6>
 <div id="chat"></div>
-<textarea id="input" rows="3" style="width:100%"></textarea>
+<textarea id="input" rows="3" class="user-input"></textarea>
 <button id="send">Send</button>
 
 <script>

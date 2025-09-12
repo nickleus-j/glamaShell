@@ -18,5 +18,27 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    font-family: Arial, sans-serif;
+    margin: 2rem auto;
+}
+textarea.user-input{
+    width:100%;
+}
+#chat {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    height: 400px;
+    overflow-y: auto;
+}
+
+.message {
+    margin: 0.5rem 0;
+}
+
+.user {
+    color: navy;
+}
+
+.assistant {
+    color: #2A7F62;
 }

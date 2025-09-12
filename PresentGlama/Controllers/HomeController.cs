@@ -6,15 +6,18 @@ namespace PresentGlama.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IConfiguration _config;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IConfiguration config)
         {
             _logger = logger;
+            _config = config;
         }
 
         public IActionResult Index()
         {
+            ViewBag.Title = _config["DefaultTitle"];
             return View();
         }
 
