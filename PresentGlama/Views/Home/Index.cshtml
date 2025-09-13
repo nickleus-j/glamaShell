@@ -36,9 +36,9 @@
     });
 
     function append(role, msg) {
-      const el = document.createElement('pre');
+      const el = document.createElement('div');
       el.className = `message ${role}`;
-      el.textContent = (role === 'user' ? 'You: ' : 'LLM: ') + msg;
+      el.innerHTML = "<br/>"+(role === 'user' ? 'You: ' : 'LLM: ') + marked.parse(msg);
       document.getElementById('chat').append(el);
       document.getElementById('chat').scrollTop = 1e9;
     }
@@ -49,7 +49,8 @@
       if (!last || !last.classList.contains('assistant')) {
         append('assistant', text);
       } else {
-        last.textContent = 'LLM: ' + text;
+        last.textContent = 'LLM: ';
+        last.innerHTML += marked.parse(text);
       }
     }
 
