@@ -47,3 +47,23 @@ textarea.user-input{
     padding: .2rem .4rem;
     border-radius: 10px;
 }
+body.dark {
+    background: #111;
+    color: #f2faf9;
+}
+.dark textarea.user-input {
+    background: #222;
+    color:ghostwhite;
+}
+.dark #chat {
+    border: 1px solid #3a3a3a;
+}
+.dark .user {
+    color: #e0e2ee;
+    background: #2a2a02;
+}
+
+.dark .assistant {
+    background: #323049;
+    color: #f1f1f1;
+}
