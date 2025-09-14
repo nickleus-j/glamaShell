@@ -37,8 +37,13 @@ textarea.user-input{
 
 .user {
     color: navy;
+    background: #faf9f1;
+    border-radius: 8px;
+    padding: .1% .6rem;
 }
 
 .assistant {
-    color: #2A7F62;
+    background: #e2e0ee;
+    padding: .2rem .4rem;
+    border-radius: 10px;
 }
