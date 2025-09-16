@@ -81,7 +81,7 @@
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
-          chunk.split('\n\n').forEach(eventBlock => {
+          chunk.split('\n').forEach(eventBlock => {
             if (eventBlock.startsWith('data: ')) {
               const data = eventBlock.slice(6);
               this._emitter.dispatchEvent(

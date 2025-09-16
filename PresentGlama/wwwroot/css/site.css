@@ -59,11 +59,11 @@ body.dark {
     border: 1px solid #3a3a3a;
 }
 .dark .user {
-    color: #e0e2ee;
+    color: #dddad9;
     background: #2a2a02;
 }
 
 .dark .assistant {
     background: #323049;
-    color: #f1f1f1;
+    color: #d1d3d2;
 }
