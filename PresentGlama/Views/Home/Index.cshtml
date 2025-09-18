@@ -1,14 +1,18 @@
 ﻿@{
-    
+
 }
 
 <h1>@ViewBag.Title</h1>
-<h6>A Shell for Ollama model lamma 3.2</h6>
+<h6>A Shell for Ollama models</h6>
 <div id="chat"></div>
 <textarea id="input" rows="3" class="user-input"></textarea>
-<button id="send">Send</button>
 <div>
-    <input type="checkbox" id="useDark"/> Use dark mode
+    <select id="modelBox"></select>
+    <button id="send">Send</button>
+</div>
+
+<div>
+    <input type="checkbox" id="useDark" /> Use dark mode
 </div>
 <script>
     document.getElementById('send').addEventListener('click', () => {
@@ -22,12 +26,12 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama3.2',
+          model: document.querySelector("#modelBox").value ,
           messages: [{ role: 'user', content: text }],
           stream: true
         })
       });
-    
+
       let assistantText = '';
       evt.onmessage = e => {
         const payload = JSON.parse(e.data);
@@ -65,7 +69,40 @@
         last.innerHTML += marked.parse(text);
       }
     }
+    function disableSendButton(){
+        let sendButton=document.getElementById('send');
+        let modelBox=document.getElementById('modelBox');
+        sendButton.disabled = true;
+        modelBox.disabled = true;
+    }
+        async function populateDropdown() {
+      const select = document.getElementById('modelBox');
+      select.innerHTML = ''; // Clear existing options
 
+      try {
+        const response = await fetch('http://localhost:11434/api/tags');
+        //const response = await fetch('/api/tags');
+        const models = await response.json(); // Assumes response is a list of strings
+
+        if (models&&models.models&&Array.isArray(models.models)) {
+          models.models.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.name;
+            option.textContent = m.name;
+            select.appendChild(option);
+          });
+        } else {
+          select.innerHTML = '<option value="">No models found</option>';
+          disableSendButton()
+        }
+      } catch (err) {
+        disableSendButton();
+        select.innerHTML = '<option value="">Error loading models</option>';
+      }
+    }
+
+    // Call on page load
+    document.addEventListener('DOMContentLoaded', populateDropdown);
     // SSE polyfill via fetch streaming
     class EventSourcePolyfill {
       constructor(url, opts) {
