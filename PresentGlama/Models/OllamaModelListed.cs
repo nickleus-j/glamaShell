@@ -2,6 +2,6 @@
 {
     public class OllamaModelList
     {
-        public List<Model> Models { get; set; } = new();
+        public IList<OllamaModel> Models { get; set; } 
     }
 }

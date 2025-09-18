@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using PresentGlama.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace PresentGlama.Controllers
 {
@@ -25,11 +26,21 @@ namespace PresentGlama.Controllers
             {
                 return [""];
             }
-
-            var stream = await response.Content.ReadAsStreamAsync();
-            var result = await JsonSerializer.DeserializeAsync<OllamaModelList>(stream);
-
+            string s = response.Content.ReadAsStringAsync().Result;
+            var result = await DeserializeOllamaModelsAsync(s);
             return result?.Models.Select(m => m.Name).ToList() ?? new List<string>();
+        }
+        async Task<OllamaModelList> DeserializeOllamaModelsAsync(string json)
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            return await Task.Run(() =>
+                JsonSerializer.Deserialize<OllamaModelList>(json, options)
+                ?? new OllamaModelList()
+            );
         }
     }
 }

@@ -80,15 +80,14 @@
       select.innerHTML = ''; // Clear existing options
 
       try {
-        const response = await fetch('http://localhost:11434/api/tags');
-        //const response = await fetch('/api/tags');
+        const response = await fetch('/api/llm');
         const models = await response.json(); // Assumes response is a list of strings
 
-        if (models&&models.models&&Array.isArray(models.models)) {
-          models.models.forEach(m => {
+        if (models&&Array.isArray(models)) {
+          models.forEach(m => {
             const option = document.createElement('option');
-            option.value = m.name;
-            option.textContent = m.name;
+            option.value = m;
+            option.textContent = m;
             select.appendChild(option);
           });
         } else {
