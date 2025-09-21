@@ -1,135 +1,143 @@
-﻿@{
-
-}
+﻿@using PresentGlama.resources
 
 <h1>@ViewBag.Title</h1>
-<h6>A Shell for Ollama models</h6>
+<h6>@Resource.DefaultSubheader</h6>
 <div id="chat"></div>
-<textarea id="input" rows="3" class="user-input"></textarea>
+<fieldset>
+    <legend>@Resource.EnterTextBelow ⬇️</legend>
+    <textarea id="input" rows="3" class="user-input"></textarea>
+</fieldset>
+
 <div>
     <select id="modelBox"></select>
-    <button id="send">Send</button>
+    <button id="send">@Resource.SendLbl</button>
 </div>
 
 <div>
-    <input type="checkbox" id="useDark" /> Use dark mode
+    <input type="checkbox" id="useDark" /> @Resource.DarkMdoeToggleLabel
 </div>
-<script>
-    document.getElementById('send').addEventListener('click', () => {
-      const text = document.getElementById('input').value.trim();
-      if (!text) return;
+@section Scripts{
+    <script>
+        var TextResource={
+            "NoModelsFound":"@Resource.NoModelsFound" ,
+            "ModelLoadError": "@Resource.ModelLoadError"
+        };
+        document.getElementById('send').addEventListener('click', () => {
+          const text = document.getElementById('input').value.trim();
+          if (!text) return;
 
-      append('user', text);
-      document.getElementById('input').value = '';
+          append('user', text);
+          document.getElementById('input').value = '';
 
-      const evt = new EventSourcePolyfill('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: document.querySelector("#modelBox").value ,
-          messages: [{ role: 'user', content: text }],
-          stream: true
-        })
-      });
-
-      let assistantText = '';
-      evt.onmessage = e => {
-        const payload = JSON.parse(e.data);
-        assistantText += payload.choices[0].delta.content || '';
-        updateAssistant(assistantText);
-      };
-      evt.onerror = () => evt.close();
-    });
-
-    const useDarkCheckbox = document.getElementById('useDark');
-
-    useDarkCheckbox.addEventListener('change', function() {
-        let bodyElem=document.querySelector("body");
-      if (this.checked) {
-        bodyElem.classList.add("dark");
-      } else {
-        bodyElem.classList.remove("dark");
-      }
-    });
-    function append(role, msg) {
-      const el = document.createElement('div');
-      el.className = `message ${role}`;
-      el.innerHTML = "<br/>"+(role === 'user' ? 'You: ' : 'LLM: ') + marked.parse(msg);
-      document.getElementById('chat').append(el);
-      document.getElementById('chat').scrollTop = 1e9;
-    }
-
-    function updateAssistant(text) {
-      const chat = document.getElementById('chat');
-      const last = chat.lastElementChild;
-      if (!last || !last.classList.contains('assistant')) {
-        append('assistant', text);
-      } else {
-        last.textContent = 'LLM: ';
-        last.innerHTML += marked.parse(text);
-      }
-    }
-    function disableSendButton(){
-        let sendButton=document.getElementById('send');
-        let modelBox=document.getElementById('modelBox');
-        sendButton.disabled = true;
-        modelBox.disabled = true;
-    }
-        async function populateDropdown() {
-      const select = document.getElementById('modelBox');
-      select.innerHTML = ''; // Clear existing options
-
-      try {
-        const response = await fetch('/api/llm');
-        const models = await response.json(); // Assumes response is a list of strings
-
-        if (models&&Array.isArray(models)) {
-          models.forEach(m => {
-            const option = document.createElement('option');
-            option.value = m;
-            option.textContent = m;
-            select.appendChild(option);
+          const evt = new EventSourcePolyfill('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: document.querySelector("#modelBox").value ,
+              messages: [{ role: 'user', content: text }],
+              stream: true
+            })
           });
-        } else {
-          select.innerHTML = '<option value="">No models found</option>';
-          disableSendButton()
-        }
-      } catch (err) {
-        disableSendButton();
-        select.innerHTML = '<option value="">Error loading models</option>';
-      }
-    }
 
-    // Call on page load
-    document.addEventListener('DOMContentLoaded', populateDropdown);
-    // SSE polyfill via fetch streaming
-    class EventSourcePolyfill {
-      constructor(url, opts) {
-        this.url = url; this.opts = opts;
-        this._emitter = new EventTarget();
-        this._init();
-      }
-      async _init() {
-        const res = await fetch(this.url, this.opts);
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          chunk.split('\n').forEach(eventBlock => {
-            if (eventBlock.startsWith('data: ')) {
-              const data = eventBlock.slice(6);
-              this._emitter.dispatchEvent(
-                new MessageEvent('message', { data })
-              );
+          let assistantText = '';
+          evt.onmessage = e => {
+            const payload = JSON.parse(e.data);
+            assistantText += payload.choices[0].delta.content || '';
+            updateAssistant(assistantText);
+          };
+          evt.onerror = () => evt.close();
+        });
+
+        const useDarkCheckbox = document.getElementById('useDark');
+
+        useDarkCheckbox.addEventListener('change', function() {
+            let bodyElem=document.querySelector("body");
+          if (this.checked) {
+            bodyElem.classList.add("dark");
+          } else {
+            bodyElem.classList.remove("dark");
+          }
+        });
+        function append(role, msg) {
+          const el = document.createElement('div');
+          el.className = `message ${role}`;
+          el.innerHTML = "<br/>"+(role === 'user' ? 'You: ' : 'LLM: ') + marked.parse(msg);
+          document.getElementById('chat').append(el);
+          document.getElementById('chat').scrollTop = 1e9;
+        }
+
+        function updateAssistant(text) {
+          const chat = document.getElementById('chat');
+          const last = chat.lastElementChild;
+          if (!last || !last.classList.contains('assistant')) {
+            append('assistant', text);
+          } else {
+            last.textContent = 'LLM: ';
+            last.innerHTML += marked.parse(text);
+          }
+        }
+        function disableSendButton(){
+            let sendButton=document.getElementById('send');
+            let modelBox=document.getElementById('modelBox');
+            sendButton.disabled = true;
+            modelBox.disabled = true;
+        }
+            async function populateDropdown() {
+          const select = document.getElementById('modelBox');
+          select.innerHTML = ''; // Clear existing options
+
+          try {
+            const response = await fetch('/api/llm');
+            const models = await response.json(); // Assumes response is a list of strings
+
+            if (models&&Array.isArray(models)) {
+              models.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m;
+                option.textContent = m;
+                select.appendChild(option);
+              });
+            } else {
+              select.innerHTML = '<option value="">'+TextResource.NoModelsFound+'</option>';
+              disableSendButton()
             }
-          });
+          } catch (err) {
+            disableSendButton();
+            select.innerHTML = '<option value="">'+TextResource.ModelLoadError+'</option>';
+          }
         }
-      }
-      addEventListener(name, fn) { this._emitter.addEventListener(name, fn); }
-      set onmessage(fn) { this.addEventListener('message', fn); }
-      set onerror(fn)   { this.addEventListener('error', fn); }
-      close() {}
-    }
-</script>
+
+        // Call on page load
+        document.addEventListener('DOMContentLoaded', populateDropdown);
+        // SSE polyfill via fetch streaming
+        class EventSourcePolyfill {
+          constructor(url, opts) {
+            this.url = url; this.opts = opts;
+            this._emitter = new EventTarget();
+            this._init();
+          }
+          async _init() {
+            const res = await fetch(this.url, this.opts);
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              const chunk = decoder.decode(value, { stream: true });
+              chunk.split('\n').forEach(eventBlock => {
+                if (eventBlock.startsWith('data: ')) {
+                  const data = eventBlock.slice(6);
+                  this._emitter.dispatchEvent(
+                    new MessageEvent('message', { data })
+                  );
+                }
+              });
+            }
+          }
+          addEventListener(name, fn) { this._emitter.addEventListener(name, fn); }
+          set onmessage(fn) { this.addEventListener('message', fn); }
+          set onerror(fn)   { this.addEventListener('error', fn); }
+          close() {}
+        }
+    </script>
+}

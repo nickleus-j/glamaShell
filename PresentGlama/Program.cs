@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Http.Json;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -33,7 +34,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+var CultureEn = new CultureInfo("en");
 app.UseAuthorization();
 
 app.MapControllerRoute(
