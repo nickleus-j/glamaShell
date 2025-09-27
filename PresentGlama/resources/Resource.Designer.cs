@@ -61,6 +61,15 @@ namespace PresentGlama.resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simply Present Ollama.
+        /// </summary>
+        public static string AppTitle {
+            get {
+                return ResourceManager.GetString("AppTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use dark mode.
         /// </summary>
         public static string DarkMdoeToggleLabel {
@@ -102,6 +111,24 @@ namespace PresentGlama.resources {
         public static string NoModelsFound {
             get {
                 return ResourceManager.GetString("NoModelsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Model:.
+        /// </summary>
+        public static string PickModelLbl {
+            get {
+                return ResourceManager.GetString("PickModelLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Privacy.
+        /// </summary>
+        public static string PrivacyText {
+            get {
+                return ResourceManager.GetString("PrivacyText", resourceCulture);
             }
         }
         
