@@ -129,6 +129,9 @@
   <data name="EnterTextBelow" xml:space="preserve">
     <value>Enter Text Below</value>
   </data>
+  <data name="FontFaceLbl" xml:space="preserve">
+    <value>Fonts:</value>
+  </data>
   <data name="ModelLoadError" xml:space="preserve">
     <value>Error loading models</value>
   </data>

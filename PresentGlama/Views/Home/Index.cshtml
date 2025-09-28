@@ -2,6 +2,8 @@
 
 <h1>@ViewBag.Title</h1>
 <h6>@Resource.DefaultSubheader</h6>
+<label>@Resource.FontFaceLbl</label>
+<select id="fontBox"></select>
 <div id="chat"></div>
 <fieldset>
     <legend>@Resource.EnterTextBelow ⬇️</legend>
@@ -110,6 +112,7 @@
 
         // Call on page load
         document.addEventListener('DOMContentLoaded', populateDropdown);
+        FontFacer.CreateFontChangeEvent( "#fontBox","#chat");
         // SSE polyfill via fetch streaming
         class EventSourcePolyfill {
           constructor(url, opts) {

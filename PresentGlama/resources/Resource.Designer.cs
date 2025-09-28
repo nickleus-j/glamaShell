@@ -97,6 +97,15 @@ namespace PresentGlama.resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fonts:.
+        /// </summary>
+        public static string FontFaceLbl {
+            get {
+                return ResourceManager.GetString("FontFaceLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error loading models.
         /// </summary>
         public static string ModelLoadError {
