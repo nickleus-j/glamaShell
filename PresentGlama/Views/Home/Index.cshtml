@@ -17,7 +17,7 @@
 </div>
 
 <div>
-    <input type="checkbox" id="useDark" /> @Resource.DarkMdoeToggleLabel
+    <input type="checkbox" id="useDark" /> @Resource.DarkModeToggleLabel
 </div>
 @section Scripts{
     <script>
@@ -85,7 +85,7 @@
             sendButton.disabled = true;
             modelBox.disabled = true;
         }
-            async function populateDropdown() {
+        async function populateDropdown() {
           const select = document.getElementById('modelBox');
           select.innerHTML = ''; // Clear existing options
 

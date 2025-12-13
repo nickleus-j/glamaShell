@@ -120,7 +120,7 @@
   <data name="AppTitle" xml:space="preserve">
     <value>Simply Present Ollama</value>
   </data>
-  <data name="DarkMdoeToggleLabel" xml:space="preserve">
+  <data name="DarkModeToggleLabel" xml:space="preserve">
     <value>Use dark mode</value>
   </data>
   <data name="DefaultSubheader" xml:space="preserve">
