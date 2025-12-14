@@ -4,7 +4,7 @@
         "Verdana, sans-serif",
         "Georgia, serif",
         "Times New Roman, serif",
-        "Courier New, monospace",
+        "Courier New, monospace","Garamond",
         "Lucida Console, monospace",
         "Impact, sans-serif", "cursive"
         ,"Roboto, sans-serif"
