@@ -16,9 +16,7 @@
     <button id="send" class="btn btn-info">@Resource.SendLbl</button>
 </div>
 
-<div>
-    <input type="checkbox" id="useDark" /> @Resource.DarkModeToggleLabel
-</div>
+
 <pre class="llmLog hidden">
 
 </pre>
@@ -59,16 +57,7 @@
           evt.onerror = () => evt.close();
         });
 
-        const useDarkCheckbox = document.getElementById('useDark');
-
-        useDarkCheckbox.addEventListener('change', function() {
-            let bodyElem=document.querySelector("body");
-          if (this.checked) {
-            bodyElem.classList.add("dark");
-          } else {
-            bodyElem.classList.remove("dark");
-          }
-        });
+        
         function append(role, msg) {
           const el = document.createElement('div');
           el.className = `message ${role}`;
