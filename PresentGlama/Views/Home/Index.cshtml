@@ -19,6 +19,9 @@
 <div>
     <input type="checkbox" id="useDark" /> @Resource.DarkModeToggleLabel
 </div>
+<pre class="llmLog hidden">
+
+</pre>
 @section Scripts{
     <script>
         var TextResource={
@@ -27,6 +30,7 @@
         };
         document.getElementById('send').addEventListener('click', () => {
           const text = document.getElementById('input').value.trim();
+          //let logElem=document.getElementsByClassName("llmLog")[0];
           if (!text) return;
 
           append('user', text);
@@ -44,9 +48,13 @@
 
           let assistantText = '';
           evt.onmessage = e => {
-            const payload = JSON.parse(e.data);
-            assistantText += payload.choices[0].delta.content || '';
-            updateAssistant(assistantText);
+              
+            if(e.data){
+                const payload = JSON.parse(e.data.replace('data: {"id"','{"id"'));
+                assistantText += payload.choices[0].delta.content;
+                updateAssistant(assistantText);
+            }
+            
           };
           evt.onerror = () => evt.close();
         });

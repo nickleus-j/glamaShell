@@ -48,6 +48,9 @@ textarea.user-input{
     padding: .2rem .4rem;
     border-radius: 10px;
 }
+.hidden{
+    display:none;
+}
 body.dark {
     background: #111;
     color: #f2faf9;
