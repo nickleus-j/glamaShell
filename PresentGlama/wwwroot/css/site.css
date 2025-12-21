@@ -80,6 +80,21 @@ body.dark {
     background-color: #0d4a70;
     border-color: #1d5a7a;
 }
+@media (min-height: 1000px) {
+    #chat {
+        height: 700px;
+    }
+}
+@media (min-height: 1400px) {
+    #chat {
+        height: 1200px;
+    }
+}
+@media (min-width: 2200px) {
+    .container{
+        max-width: 2000px;
+    }
+}
 .wheel {
     -webkit-animation: spin 5s linear infinite; /* Safari browser */
     animation: spin 5s linear infinite;
