@@ -22,122 +22,220 @@
 </pre>
 @section Scripts{
     <script>
-        var TextResource={
-            "NoModelsFound":"@Resource.NoModelsFound" ,
-            "ModelLoadError": "@Resource.ModelLoadError"
+        const TextResource = {
+            NoModelsFound: "@Resource.NoModelsFound",
+            ModelLoadError: "@Resource.ModelLoadError"
         };
-        document.getElementById('send').addEventListener('click', () => {
-          const text = document.getElementById('input').value.trim();
-          if (!text) return;
 
-          append('user', text);
-          document.getElementById('input').value = '';
+        const sendBtn = document.getElementById('send');
+        const inputEl = document.getElementById('input');
+        const chatEl = document.getElementById('chat');
+        const modelBox = document.getElementById('modelBox');
 
-          const evt = new EventSourcePolyfill('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: document.querySelector("#modelBox").value ,
-              messages: [{ role: 'user', content: text }],
-              stream: true
-            })
-          });
+        let sseController = null;
 
-          let assistantText = '';
-          evt.onmessage = e => {
-              
-            if(e.data){
-                const payload = JSON.parse(e.data.replace('data: {"id"','{"id"'));
-                assistantText += payload.choices[0].delta.content;
-                updateAssistant(assistantText);
-            }
-            
-          };
-          evt.onerror = () => evt.close();
-        });
+        sendBtn.addEventListener('click', onSend);
 
-        
-        function append(role, msg) {
-          const el = document.createElement('div');
-          el.className = `message ${role}`;
-          el.innerHTML = "<br/>"+(role === 'user' ? 'You: ' : 'LLM: ') + marked.parse(msg);
-          document.getElementById('chat').append(el);
-          document.getElementById('chat').scrollTop = 1e9;
+        function onSend() {
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            appendMessage('user', text);
+            inputEl.value = '';
+
+            // Cancel any previous stream
+            if (sseController) sseController.abort();
+
+            sseController = new AbortController();
+            const signal = sseController.signal;
+
+            disableControls(true);
+
+            // Use fetch streaming wrapper that emits SSE-style 'data:' events
+            const payload = {
+                model: modelBox.value,
+                messages: [{ role: 'user', content: text }],
+                stream: true
+            };
+
+            const evt = new EventSourcePolyfill('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal
+            });
+
+            let assistantText = '';
+
+            evt.onmessage = e => {
+                if (!e.data) return;
+                try {
+                    // The server may already send SSE 'data: {...}' blocks.
+                    // If the payload is a raw JSON chunk, parse it directly.
+                    const raw = e.data.trim();
+                    const payloadObj = JSON.parse(raw);
+                    const delta = payloadObj?.choices?.[0]?.delta?.content;
+                    if (delta) {
+                        assistantText += delta;
+                        updateAssistant(assistantText);
+                    }
+                } catch (err) {
+                    // If parsing fails, append raw chunk for debugging
+                    assistantText += raw;
+                    updateAssistant(assistantText);
+                }
+            };
+
+            evt.onerror = err => {
+                // Close and cleanup on error
+                evt.close();
+                disableControls(false);
+                sseController = null;
+            };
+
+            // Stop streaming when client disconnects (optional)
+            signal.addEventListener('abort', () => {
+                evt.close();
+                disableControls(false);
+                sseController = null;
+            });
+        }
+
+        function appendMessage(role, msg) {
+            const el = document.createElement('div');
+            el.className = `message ${role}`;
+            const prefix = role === 'user' ? 'You: ' : 'LLM: ';
+            // If you render markdown, sanitize first (e.g., DOMPurify.sanitize)
+            el.innerHTML = '<br/>' + prefix + marked.parse(msg);
+            chatEl.appendChild(el);
+            chatEl.scrollTop = chatEl.scrollHeight;
         }
 
         function updateAssistant(text) {
-          const chat = document.getElementById('chat');
-          const last = chat.lastElementChild;
-          if (!last || !last.classList.contains('assistant')) {
-            append('assistant', text);
-          } else {
-            last.textContent = document.querySelector("#modelBox").value+' LLM: ';
-            last.innerHTML += marked.parse(text);
-          }
+            const last = chatEl.lastElementChild;
+            if (!last || !last.classList.contains('assistant')) {
+                appendMessage('assistant', text);
+                return;
+            }
+            // Replace content safely: keep a label then render markdown
+            last.innerHTML = `${modelBox.value} LLM: ` + marked.parse(text);
+            chatEl.scrollTop = chatEl.scrollHeight;
         }
-        function disableSendButton(){
-            let sendButton=document.getElementById('send');
-            let modelBox=document.getElementById('modelBox');
-            sendButton.disabled = true;
-            modelBox.disabled = true;
+
+        function disableControls(disabled = true) {
+            sendBtn.disabled = disabled;
+            modelBox.disabled = disabled;
+            if (disabled) sendBtn.classList.add('loading'); else sendBtn.classList.remove('loading');
         }
+
         async function populateDropdown() {
-          const select = document.getElementById('modelBox');
-          select.innerHTML = ''; // Clear existing options
+            const select = modelBox;
+            select.innerHTML = '';
 
-          try {
-            const response = await fetch('/api/llm');
-            const models = await response.json(); // Assumes response is a list of strings
+            try {
+                const res = await fetch('/api/llm', { cache: 'no-store' });
+                if (!res.ok) throw new Error('Network response not ok');
+                const models = await res.json();
 
-            if (models&&Array.isArray(models)) {
-              models.forEach(m => {
-                const option = document.createElement('option');
-                option.value = m;
-                option.textContent = m;
-                select.appendChild(option);
-              });
-            } else {
-              select.innerHTML = '<option value="">'+TextResource.NoModelsFound+'</option>';
-              disableSendButton()
-            }
-          } catch (err) {
-            disableSendButton();
-            select.innerHTML = '<option value="">'+TextResource.ModelLoadError+'</option>';
-          }
-        }
-
-        // Call on page load
-        document.addEventListener('DOMContentLoaded', populateDropdown);
-        FontFacer.CreateFontChangeEvent( "#fontBox","#chat");
-        // SSE polyfill via fetch streaming
-        class EventSourcePolyfill {
-          constructor(url, opts) {
-            this.url = url; this.opts = opts;
-            this._emitter = new EventTarget();
-            this._init();
-          }
-          async _init() {
-            const res = await fetch(this.url, this.opts);
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              const chunk = decoder.decode(value, { stream: true });
-              chunk.split('\n').forEach(eventBlock => {
-                if (eventBlock.startsWith('data: ')) {
-                  const data = eventBlock.slice(6);
-                  this._emitter.dispatchEvent(
-                    new MessageEvent('message', { data })
-                  );
+                if (Array.isArray(models) && models.length) {
+                    models.forEach(m => {
+                        const option = document.createElement('option');
+                        option.value = m;
+                        option.textContent = m;
+                        select.appendChild(option);
+                    });
+                    disableControls(false);
+                } else {
+                    select.innerHTML = `<option value="">${TextResource.NoModelsFound}</option>`;
+                    disableControls(true);
                 }
-              });
+            } catch (err) {
+                select.innerHTML = `<option value="">${TextResource.ModelLoadError}</option>`;
+                disableControls(true);
             }
-          }
-          addEventListener(name, fn) { this._emitter.addEventListener(name, fn); }
-          set onmessage(fn) { this.addEventListener('message', fn); }
-          set onerror(fn)   { this.addEventListener('error', fn); }
-          close() {}
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateDropdown();
+            FontFacer.CreateFontChangeEvent("#fontBox", "#chat");
+        });
+
+        /* SSE polyfill that converts fetch streaming into message events.
+           - Accepts an AbortSignal in opts.signal
+           - Emits 'message' events with event.data set to the data payload string
+        */
+        class EventSourcePolyfill {
+            constructor(url, opts = {}) {
+                this.url = url;
+                this.opts = { ...opts };
+                this._emitter = new EventTarget();
+                this._reader = null;
+                this._closed = false;
+                this._init();
+            }
+
+            async _init() {
+                try {
+                    // Ensure we don't buffer the entire response
+                    const fetchOpts = { ...this.opts };
+                    // fetch accepts signal already if provided
+                    const res = await fetch(this.url, fetchOpts);
+                    if (!res.ok) {
+                        this._emitError(new Error(`Upstream responded ${res.status}`));
+                        return;
+                    }
+                    const reader = res.body.getReader();
+                    this._reader = reader;
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+
+                        // SSE events are separated by double newline. Process complete event blocks.
+                        let idx;
+                        while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                            const block = buffer.slice(0, idx).trim();
+                            buffer = buffer.slice(idx + 2);
+                            // Each block may contain multiple lines; find lines that start with 'data: '
+                            block.split(/\r?\n/).forEach(line => {
+                                if (line.startsWith('data:')) {
+                                    const data = line.slice(5).trim();
+                                    this._emitter.dispatchEvent(new MessageEvent('message', { data }));
+                                }
+                            });
+                        }
+                    }
+
+                    // Process any remaining buffer
+                    if (buffer.trim()) {
+                        buffer.split(/\r?\n/).forEach(line => {
+                            if (line.startsWith('data:')) {
+                                const data = line.slice(5).trim();
+                                this._emitter.dispatchEvent(new MessageEvent('message', { data }));
+                            }
+                        });
+                    }
+                } catch (err) {
+                    if (!this._closed) this._emitError(err);
+                }
+            }
+
+            _emitError(err) {
+                this._emitter.dispatchEvent(new MessageEvent('error', { data: err.message }));
+            }
+
+            addEventListener(name, fn) { this._emitter.addEventListener(name, fn); }
+            set onmessage(fn) { this.addEventListener('message', fn); }
+            set onerror(fn) { this.addEventListener('error', fn); }
+
+            close() {
+                this._closed = true;
+                if (this._reader) this._reader.cancel().catch(() => { });
+            }
+        }
+
     </script>
 }
