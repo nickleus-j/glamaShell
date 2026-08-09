@@ -80,9 +80,8 @@
                         updateAssistant(assistantText);
                     }
                 } catch (err) {
-                    // If parsing fails, append raw chunk for debugging
-                    assistantText += raw;
-                    updateAssistant(assistantText);
+                    disableControls(false);
+                    sseController = null;
                 }
             };
 
