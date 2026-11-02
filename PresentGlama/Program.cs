@@ -1,5 +1,7 @@
 
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Options;
+using PresentGlama;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -7,16 +9,16 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
 
-// Register HttpClient for Ollama on localhost:11434
+builder.Services.AddOptions<GlammaOptions>().Bind(builder.Configuration.GetSection("GlammaOptions")).ValidateDataAnnotations().ValidateOnStart();
+var glammaOptions = new GlammaOptions();
+builder.Configuration.GetSection("GlammaOptions").Bind(glammaOptions);
 builder.Services.AddHttpClient("ollama", client =>
 {
-    client.BaseAddress = new Uri(builder?.Configuration["OllamaAddress"]?? "http://localhost:11434");
-    client.DefaultRequestHeaders.Accept.Add(
-        new MediaTypeWithQualityHeaderValue("application/json"));
+    client.BaseAddress = new Uri(glammaOptions.OllamaAddress);
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
-
+builder.Services.AddControllersWithViews();
 // Configure JSON to use camelCase
 builder.Services.Configure<JsonOptions>(opts =>
 {

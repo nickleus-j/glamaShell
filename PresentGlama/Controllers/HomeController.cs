@@ -1,23 +1,24 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using PresentGlama.Models;
+using System.Diagnostics;
 
 namespace PresentGlama.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IConfiguration _config;
         private readonly ILogger<HomeController> _logger;
+        private readonly GlammaOptions _glammaOptions;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration config)
+        public HomeController(ILogger<HomeController> logger, IOptions<GlammaOptions> config)
         {
             _logger = logger;
-            _config = config;
+            _glammaOptions = config.Value;
         }
 
         public IActionResult Index()
         {
-            ViewBag.Title = _config["DefaultTitle"];
+            ViewBag.Title = _glammaOptions.DefaultTitle;
             return View();
         }
 
